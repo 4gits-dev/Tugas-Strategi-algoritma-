@@ -1,0 +1,44 @@
+
+import numpy as np
+import random
+
+def distance(city1, city2):
+    return np.linalg.norm(np.array(city1) - np.array(city2))
+
+def total_distance(tour, cities):
+    return sum(distance(cities[tour[i]], cities[tour[i - 1]]) for i in range(len(tour)))
+
+def simulated_annealing(cities, temperature=10000, cooling_rate=0.003, stopping_temperature=1):
+    n = len(cities)
+    current_solution = list(range(n))
+    random.shuffle(current_solution)
+    current_distance = total_distance(current_solution, cities)
+
+    best_solution = list(current_solution)
+    best_distance = current_distance
+
+    while temperature > stopping_temperature:
+        new_solution = list(current_solution)
+        l = random.randint(2, n - 1)
+        i = random.randint(0, n - l)
+        new_solution[i:i + l] = reversed(new_solution[i:i + l])
+        new_distance = total_distance(new_solution, cities)
+
+        if new_distance < current_distance or random.uniform(0, 1) < np.exp((current_distance - new_distance) / temperature):
+            current_solution = list(new_solution)
+            current_distance = new_distance
+
+            if current_distance < best_distance:
+                best_solution = list(current_solution)
+                best_distance = current_distance
+
+        temperature *= 1 - cooling_rate
+
+    return best_solution, best_distance
+
+# Contoh penggunaan
+cities = [(0, 0), (1, 5), (5, 2), (6, 6), (8, 3), (7, 7), (9, 9), (2, 4), (3, 8), (4, 1)]
+best_tour, best_tour_distance = simulated_annealing(cities)
+
+print("Best tour:", best_tour)
+print("Best tour distance:", best_tour_distance)
